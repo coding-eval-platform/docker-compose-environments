@@ -4,7 +4,7 @@ services:
   # Start an Nginx server to route requests to the Evaluations Service
   # It is mainly used for CORS stuff.
   nginx:
-    image: shakyshane/nginx-cors-plus
+    image: bellotapps/nginx-cors-plus:latest
     depends_on: 
       - evaluations-service
     ports: 
