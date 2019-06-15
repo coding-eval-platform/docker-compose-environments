@@ -1,0 +1,101 @@
+version: "3.7"
+
+
+services:
+  # Start an Nginx server to route requests to the Playground Service
+  # It is mainly used for CORS stuff.
+  nginx:
+    image: bellotapps/nginx-cors-plus:latest
+    depends_on: 
+      - playground-service
+    ports: 
+      - "8000:80"
+    networks: 
+      - dmz       # Provide services to the Internet
+      - services  # Allow communications with the services network
+    environment:
+      TARGET: "http://playground-service:8000"
+
+  # Starts a container with the Playground Service.
+  playground-service:
+    image: itbacep/playground-service:${PLAYGROUND_SERVICE_VERSION}
+    depends_on: 
+      - postgres
+      - kafka
+    ports:
+      - "8000:8000"
+    networks:
+      - services
+      - databases
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/${PLAYGROUND_SERVICE_POSTGRES_DATABASE}"
+      SPRING_DATASOURCE_USERNAME: ${PLAYGROUND_SERVICE_POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${PLAYGROUND_SERVICE_POSTGRES_PASSWORD}
+      SPRING_KAFKA_BOOTSTRAPSERVERS: "kafka:9092"
+
+ # Starts a container with the Executors Service
+  executor-service:
+    image: itbacep/executor-service:${EXECUTOR_SERVICE_VERSION}
+    depends_on:
+      - kafka
+    networks:
+      - databases
+    environment:
+      SPRING_KAFKA_BOOTSTRAPSERVERS: "kafka:9092"
+  
+  # Starts a container with a Postgres Database.
+  postgres:
+    image: postgres:10.8-alpine
+    ports:
+      - "8001:5432"
+    networks:
+      - databases
+      - backdoor
+    environment:
+      POSTGRES_USER: ${PLAYGROUND_SERVICE_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${PLAYGROUND_SERVICE_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${PLAYGROUND_SERVICE_POSTGRES_DATABASE}
+  
+  # Starts a container with a Kafka instance
+  kafka:
+    image: confluentinc/cp-kafka:5.1.3
+    depends_on:
+      - zookeeper
+    networks:
+      - databases
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      # VER QUE ONDA LO DE LAS METRICS DE CONFLUENT
+
+  # Starts a container with a Zookeeper instance
+  zookeeper:
+    image: confluentinc/cp-zookeeper:5.1.3
+    networks:
+      - databases
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+
+
+networks:
+  # Network that can be accessed from the outside
+  dmz:
+    name: dmz
+    driver: bridge
+  # Network where services are placed
+  services:
+    name: services
+    driver: bridge
+    internal: 'true'
+  # Network where databases are placed
+  databases:
+    name: databases
+    driver: bridge
+    internal: 'true'
+  # A network to be used for troubleshooting and debugging 
+  # DO NOT USE IN PRODUCTION!!!
+  backdoor:
+    name: backdoor
+    driver: bridge
