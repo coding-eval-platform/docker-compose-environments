@@ -1,0 +1,181 @@
+version: "3.7"
+
+
+# ================================================================================
+# Services
+# ================================================================================
+
+services:
+  
+  # ================================================================================
+  # API gateway
+  # ================================================================================
+
+  api-gateway:
+    image: itbacep/api-gateway:${API_GATEWAY_VERSION}
+    depends_on:
+      - evaluations-service
+      - playground-service
+      - service-registry
+    ports:
+      - "8000:80"
+    networks:
+      - dmz       # Provide services to the Internet
+      - services  # Allow communications with the services network
+      - databases # Allow communications with the databases
+    environment:
+      eureka.client.serviceUrl.defaultZone: "http://service-registry:8761/eureka/"
+      SPRING_PROFILES_ACTIVE: "prod"
+
+  # ================================================================================
+  # Playground Service
+  # ================================================================================
+  
+  # Starts a container with the Playground Service
+  playground-service:
+    image: itbacep/playground-service:${PLAYGROUND_SERVICE_VERSION}
+    depends_on:
+      - service-registry
+      - postgres-playground
+      - kafka
+    networks:
+      - services
+      - databases
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres-playground:5432/${PLAYGROUND_SERVICE_POSTGRES_DATABASE}"
+      SPRING_DATASOURCE_USERNAME: ${PLAYGROUND_SERVICE_POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${PLAYGROUND_SERVICE_POSTGRES_PASSWORD}
+      SPRING_KAFKA_BOOTSTRAPSERVERS: "kafka:9092"
+      eureka.client.serviceUrl.defaultZone: "http://service-registry:8761/eureka/"
+      SPRING_PROFILES_ACTIVE: "prod"
+
+  # Starts a container with a Postgres Database for the Playground Service.
+  postgres-playground:
+    image: postgres:10.8-alpine
+    ports:
+      - "15432:5432"
+    networks:
+      - databases
+      - backdoor
+    environment:
+      POSTGRES_USER: ${PLAYGROUND_SERVICE_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${PLAYGROUND_SERVICE_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${PLAYGROUND_SERVICE_POSTGRES_DATABASE}
+
+
+  # ================================================================================
+  # Evaluations Service
+  # ================================================================================
+  
+  # Starts a container with the Evaluations Service.
+  evaluations-service:
+    image: itbacep/evaluations-service:${EVALUATIONS_SERVICE_VERSION}
+    depends_on:
+      - service-registry
+      - postgres-evaluations
+      - kafka
+    networks:
+      - services
+      - databases
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres-evaluations:5432/${EVALUATIONS_SERVICE_POSTGRES_DATABASE}"
+      SPRING_DATASOURCE_USERNAME: ${EVALUATIONS_SERVICE_POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${EVALUATIONS_SERVICE_POSTGRES_PASSWORD}
+      SPRING_KAFKA_BOOTSTRAPSERVERS: "kafka:9092"
+      eureka.client.serviceUrl.defaultZone: "http://service-registry:8761/eureka/"
+      SPRING_PROFILES_ACTIVE: "prod"
+
+  # Starts a container with a Postgres Database for the Evaluations Service.
+  postgres-evaluations:
+    image: postgres:10.8-alpine
+    ports:
+      - "25432:5432"
+    networks:
+      - databases
+      - backdoor
+    environment:
+      POSTGRES_USER: ${EVALUATIONS_SERVICE_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${EVALUATIONS_SERVICE_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${EVALUATIONS_SERVICE_POSTGRES_DATABASE}
+
+  
+  # ================================================================================
+  # Executor Service
+  # ================================================================================
+
+  # Starts a container with the Executors Service
+  executor-service:
+    image: itbacep/executor-service:${EXECUTOR_SERVICE_VERSION}
+    depends_on:
+      - kafka
+    networks:
+      - databases
+    environment:
+      SPRING_KAFKA_BOOTSTRAPSERVERS: "kafka:9092"
+
+
+  # ================================================================================
+  # Service Registry
+  # ================================================================================
+
+  service-registry:
+    image: itbacep/service-registry:${SERVICE_REGISTRY_VERSION}
+    ports:
+      - "8761:8761"
+    networks:
+      - services
+      - backdoor
+    environment:
+      SPRING_PROFILES_ACTIVE: "prod"
+  
+  # ================================================================================
+  # Kafka stuff
+  # ================================================================================
+  
+  # Starts a container with a Kafka instance
+  kafka:
+    image: confluentinc/cp-kafka:5.1.3
+    depends_on:
+      - zookeeper
+    networks:
+      - databases
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      # VER QUE ONDA LO DE LAS METRICS DE CONFLUENT
+
+  # Starts a container with a Zookeeper instance
+  zookeeper:
+    image: confluentinc/cp-zookeeper:5.1.3
+    networks:
+      - databases
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+
+
+# ================================================================================
+# Networking
+# ================================================================================
+
+networks:
+  # Network that can be accessed from the outside
+  dmz:
+    name: dmz
+    driver: bridge
+  # Network where services are placed
+  services:
+    name: services
+    driver: bridge
+    internal: 'true'
+  # Network where databases are placed
+  databases:
+    name: databases
+    driver: bridge
+    internal: 'true'
+  # A network to be used for troubleshooting and debugging 
+  # DO NOT USE IN PRODUCTION!!!
+  backdoor:
+    name: backdoor
+    driver: bridge
