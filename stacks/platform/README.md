@@ -7,6 +7,7 @@ Stack that allows running the whole platform.
 - Apache Zookeeper
 - Apache Kafka
 - PostgreSQL database
+- Users Service
 - Evaluations Service
 - Playground Service
 - Executor Service
@@ -22,6 +23,10 @@ Those without a default value must be set using the ```export``` command.
 | Variable                              | Description                                       | Default value         |
 |:--------------------------------------|:--------------------------------------------------|:---------------------:|
 | API_GATEWAY_VERSION                   | The API Gateway Docker image tag                  | -                     |
+| USERS_SERVICE_VERSION                 | The Users Service Docker image tag                | -                     |
+| USERS_SERVICE_POSTGRES_USER           | The Users Service database username               | users-service         |
+| USERS_SERVICE_POSTGRES_PASSWORD       | The Users Service database user's password        | users-service         |
+| USERS_SERVICE_POSTGRES_DATABASE       | The Users Service database name                   | users-service         |
 | EVALUATIONS_SERVICE_VERSION           | The Evaluations Service Docker image tag          | -                     |
 | EVALUATIONS_SERVICE_POSTGRES_USER     | The Evaluations Service database username         | evaluations-service   |
 | EVALUATIONS_SERVICE_POSTGRES_PASSWORD | The Evaluations Service database user's password  | evaluations-service   |
