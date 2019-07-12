@@ -1,0 +1,112 @@
+version: "3.7"
+
+services:
+
+  # ================================================================================
+  # API gateway
+  # ================================================================================
+
+  api-gateway:
+    image: itbacep/api-gateway:${API_GATEWAY_VERSION}
+    depends_on:
+      - service-registry
+    ports:
+      - "8000:80"
+    environment:
+      eureka.client.serviceUrl.defaultZone: "http://service-registry:8761/eureka/"
+      SPRING_PROFILES_ACTIVE: "prod"
+
+
+  # ================================================================================
+  # Service Registry
+  # ================================================================================
+
+  service-registry:
+    image: itbacep/service-registry:${SERVICE_REGISTRY_VERSION}
+    ports:
+      - "8761:8761"
+    environment:
+      SPRING_PROFILES_ACTIVE: "prod"
+
+
+  # ================================================================================
+  # Postgres Database
+  # ================================================================================
+
+  # Starts a container with a Postgres Server.
+  postgres-server:
+    image: postgres:10.8-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_SUPERUSER_PASSWORD}
+
+  # Starts a container with that executes PSQL to configure the postgres server.
+  postgres-client:
+    image: postgres:10.8-alpine
+    depends_on:
+      - postgres-server
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_SUPERUSER_PASSWORD}
+      PGPASSWORD: ${POSTGRES_SUPERUSER_PASSWORD}
+    command: >
+      bash -c \
+      "
+        until pg_isready -q -d postgres -h postgres-server -p 5432 -U postgres; 
+        do
+          echo \"Postgres is unavailable - Retrying in 1 second\";
+          sleep 1;
+        done
+        dropdb ${PLAYGROUND_SERVICE_POSTGRES_DATABASE} --if-exists \
+          -h postgres-server -p 5432 -U postgres
+        dropdb ${EVALUATIONS_SERVICE_POSTGRES_DATABASE} --if-exists \
+          -h postgres-server -p 5432 -U postgres
+        dropdb ${USERS_SERVICE_POSTGRES_DATABASE} --if-exists \
+          -h postgres-server -p 5432 -U postgres
+        dropuser ${PLAYGROUND_SERVICE_POSTGRES_USER} --if-exists \
+          -h postgres-server -p 5432 -U postgres
+        dropuser ${EVALUATIONS_SERVICE_POSTGRES_USER} --if-exists \
+          -h postgres-server -p 5432 -U postgres
+        dropuser ${USERS_SERVICE_POSTGRES_USER} --if-exists \
+          -h postgres-server -p 5432 -U postgres
+        psql postgres -h postgres-server -p 5432 -U postgres -c \
+        \"
+          CREATE USER \\\"${PLAYGROUND_SERVICE_POSTGRES_USER}\\\"
+            PASSWORD '${PLAYGROUND_SERVICE_POSTGRES_PASSWORD}';
+          CREATE USER \\\"${EVALUATIONS_SERVICE_POSTGRES_USER}\\\"
+            PASSWORD '${EVALUATIONS_SERVICE_POSTGRES_PASSWORD}'; 
+          CREATE USER \\\"${USERS_SERVICE_POSTGRES_USER}\\\"
+            PASSWORD '${USERS_SERVICE_POSTGRES_PASSWORD}'; 
+        \"
+        createdb ${PLAYGROUND_SERVICE_POSTGRES_DATABASE} -O ${PLAYGROUND_SERVICE_POSTGRES_USER} \
+          -h postgres-server -p 5432 -U postgres
+        createdb ${EVALUATIONS_SERVICE_POSTGRES_DATABASE} -O ${EVALUATIONS_SERVICE_POSTGRES_USER} \
+          -h postgres-server -p 5432 -U postgres
+        createdb ${USERS_SERVICE_POSTGRES_DATABASE} -O ${USERS_SERVICE_POSTGRES_USER} \
+          -h postgres-server -p 5432 -U postgres
+      "
+
+
+  # ================================================================================
+  # Kafka stuff
+  # ================================================================================
+  
+  # Starts a container with a Kafka instance
+  kafka:
+    image: confluentinc/cp-kafka:5.1.3
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      # VER QUE ONDA LO DE LAS METRICS DE CONFLUENT
+
+  # Starts a container with a Zookeeper instance
+  zookeeper:
+    image: confluentinc/cp-zookeeper:5.1.3
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
