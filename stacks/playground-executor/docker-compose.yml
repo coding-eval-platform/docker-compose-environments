@@ -1,56 +1,55 @@
 version: "3.7"
 
-
 services:
   # Start an Nginx server to route requests to the Playground Service
   # It is mainly used for CORS stuff.
   nginx:
-    image: bellotapps/nginx-cors-plus:latest
+    image: bellotapps/nginx-cors-plus:0.0.1-RELEASE
     depends_on: 
       - playground-service
     ports: 
-      - "8000:80"
-    networks: 
-      - dmz       # Provide services to the Internet
-      - services  # Allow communications with the services network
+      - "8009:80"
     environment:
       TARGET: "http://playground-service:8000"
+
+  # Service Registry
+  service-registry:
+    image: itbacep/service-registry:${SERVICE_REGISTRY_VERSION}
+    ports:
+      - "8761:8761"
+    environment:
+      SPRING_PROFILES_ACTIVE: "prod"
 
   # Starts a container with the Playground Service.
   playground-service:
     image: itbacep/playground-service:${PLAYGROUND_SERVICE_VERSION}
     depends_on: 
+      - service-registry
       - postgres
       - kafka
-    ports:
-      - "8000:8000"
-    networks:
-      - services
-      - databases
     environment:
       SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/${PLAYGROUND_SERVICE_POSTGRES_DATABASE}"
       SPRING_DATASOURCE_USERNAME: ${PLAYGROUND_SERVICE_POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${PLAYGROUND_SERVICE_POSTGRES_PASSWORD}
       SPRING_KAFKA_BOOTSTRAPSERVERS: "kafka:9092"
+      eureka.client.serviceUrl.defaultZone: "http://service-registry:8761/eureka/"
+      SERVER_PORT: 8000
+      SPRING_PROFILES_ACTIVE: "prod"
 
  # Starts a container with the Executors Service
   executor-service:
     image: itbacep/executor-service:${EXECUTOR_SERVICE_VERSION}
     depends_on:
       - kafka
-    networks:
-      - databases
     environment:
       SPRING_KAFKA_BOOTSTRAPSERVERS: "kafka:9092"
+      SPRING_PROFILES_ACTIVE: "prod"
   
   # Starts a container with a Postgres Database.
   postgres:
     image: postgres:10.8-alpine
     ports:
-      - "8001:5432"
-    networks:
-      - databases
-      - backdoor
+      - "54322:5432"
     environment:
       POSTGRES_USER: ${PLAYGROUND_SERVICE_POSTGRES_USER}
       POSTGRES_PASSWORD: ${PLAYGROUND_SERVICE_POSTGRES_PASSWORD}
@@ -61,8 +60,6 @@ services:
     image: confluentinc/cp-kafka:5.1.3
     depends_on:
       - zookeeper
-    networks:
-      - databases
     environment:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
@@ -73,29 +70,7 @@ services:
   # Starts a container with a Zookeeper instance
   zookeeper:
     image: confluentinc/cp-zookeeper:5.1.3
-    networks:
-      - databases
+    # networks:
+    #   - databases
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
-
-
-networks:
-  # Network that can be accessed from the outside
-  dmz:
-    name: dmz
-    driver: bridge
-  # Network where services are placed
-  services:
-    name: services
-    driver: bridge
-    internal: 'true'
-  # Network where databases are placed
-  databases:
-    name: databases
-    driver: bridge
-    internal: 'true'
-  # A network to be used for troubleshooting and debugging 
-  # DO NOT USE IN PRODUCTION!!!
-  backdoor:
-    name: backdoor
-    driver: bridge
