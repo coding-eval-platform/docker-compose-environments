@@ -50,6 +50,7 @@ services:
       SPRING_KAFKA_BOOTSTRAPSERVERS: "kafka:9092"
       eureka.client.serviceUrl.defaultZone: "http://service-registry:8761/eureka/"
       SPRING_PROFILES_ACTIVE: "prod"
+      AUTHENTICATION_JWT_APIGATEWAY_PUBLICKEY: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3Qold2jMzk/Ca3yYusjm9hxNp3EVBnzWD8GbTSfNPV+7z/+2f9LRSx2CztMCwgPciKC+7fWHzKcUgidLbPqPpKjqlbJQ0KKp7rPHOTmAaSaVX+OVSi00p7lbU1Hdepjdzt0LTwT3EBHTU0fGghTOQZffVtKzyg4Gth6iKEhIAHQztQ63JI5c6F1o4eGwJ8JrIHcjUewXO8HDBsU+3UGtiw8ixXVZ4sfGMrWkPylAC81gCWFfQhWggGz0O9xMEBD30C1EgBBZEN8C0Wg3EgDItiUrudqvxcgnCa1ssjEgSY+kYgMsDwcqpzO5PiISNd2JIc31miM99XaQkArYIidBTwIDAQAB
 
   # Starts a container with a Postgres Database for the Playground Service.
   postgres-playground:
