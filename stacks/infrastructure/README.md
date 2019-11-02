@@ -28,6 +28,9 @@ Those without a default value must be set using the ```export``` command.
 | PLAYGROUND_SERVICE_POSTGRES_USER      | The Playground Service database username          | coding-eval-platform__playground-service  |
 | PLAYGROUND_SERVICE_POSTGRES_PASSWORD  | The Playground Service database user's password   | coding-eval-platform__playground-service  |
 | PLAYGROUND_SERVICE_POSTGRES_DATABASE  | The Playground Service database name              | coding-eval-platform__playground-service  |
+| LTI_SERVICE_POSTGRES_USER             | The LTI Service database username                 | coding-eval-platform__lti-service         |
+| LTI_SERVICE_POSTGRES_PASSWORD         | The LTI Service database user's password          | coding-eval-platform__lti-service         |
+| LTI_SERVICE_POSTGRES_DATABASE         | The LTI Service database name                     | coding-eval-platform__lti-service         |
 | SERVICE_REGISTRY_VERSION              | The Service Registry Docker image tag             | -                                         |
 
 

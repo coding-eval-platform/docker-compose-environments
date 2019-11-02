@@ -59,11 +59,15 @@ services:
           echo \"Postgres is unavailable - Retrying in 1 second\";
           sleep 1;
         done
+        dropdb ${LTI_SERVICE_POSTGRES_DATABASE} --if-exists \
+          -h postgres-server -p 5432 -U postgres
         dropdb ${PLAYGROUND_SERVICE_POSTGRES_DATABASE} --if-exists \
           -h postgres-server -p 5432 -U postgres
         dropdb ${EVALUATIONS_SERVICE_POSTGRES_DATABASE} --if-exists \
           -h postgres-server -p 5432 -U postgres
         dropdb ${USERS_SERVICE_POSTGRES_DATABASE} --if-exists \
+          -h postgres-server -p 5432 -U postgres
+        dropuser ${LTI_SERVICE_POSTGRES_USER} --if-exists \
           -h postgres-server -p 5432 -U postgres
         dropuser ${PLAYGROUND_SERVICE_POSTGRES_USER} --if-exists \
           -h postgres-server -p 5432 -U postgres
@@ -73,6 +77,8 @@ services:
           -h postgres-server -p 5432 -U postgres
         psql postgres -h postgres-server -p 5432 -U postgres -c \
         \"
+          CREATE USER \\\"${LTI_SERVICE_POSTGRES_USER}\\\"
+            PASSWORD '${LTI_SERVICE_POSTGRES_PASSWORD}';
           CREATE USER \\\"${PLAYGROUND_SERVICE_POSTGRES_USER}\\\"
             PASSWORD '${PLAYGROUND_SERVICE_POSTGRES_PASSWORD}';
           CREATE USER \\\"${EVALUATIONS_SERVICE_POSTGRES_USER}\\\"
@@ -80,6 +86,8 @@ services:
           CREATE USER \\\"${USERS_SERVICE_POSTGRES_USER}\\\"
             PASSWORD '${USERS_SERVICE_POSTGRES_PASSWORD}'; 
         \"
+        createdb ${LTI_SERVICE_POSTGRES_DATABASE} -O ${LTI_SERVICE_POSTGRES_USER} \
+          -h postgres-server -p 5432 -U postgres
         createdb ${PLAYGROUND_SERVICE_POSTGRES_DATABASE} -O ${PLAYGROUND_SERVICE_POSTGRES_USER} \
           -h postgres-server -p 5432 -U postgres
         createdb ${EVALUATIONS_SERVICE_POSTGRES_DATABASE} -O ${EVALUATIONS_SERVICE_POSTGRES_USER} \
