@@ -9,6 +9,9 @@ Stack that allows running the infrastructure of the platform, in order to genera
 - PostgreSQL database
 - Service Registry
 - API Gateway
+- Zipkin
+- Cassandra
+
 
 ## Variables
 
