@@ -20,9 +20,7 @@ services:
     ports:
       - "8000:80"
     networks:
-      - dmz       # Provide services to the Internet
-      - services  # Allow communications with the services network
-      - databases # Allow communications with the databases
+      - cep-platform-network
     environment:
       eureka.client.serviceUrl.defaultZone: "http://service-registry:8761/eureka/"
       SPRING_ZIPKIN_BASEURL: http://zipkin:9411/
@@ -42,8 +40,7 @@ services:
       - postgres-playground
       - kafka
     networks:
-      - services
-      - databases
+      - cep-platform-network
     environment:
       SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres-playground:5432/${PLAYGROUND_SERVICE_POSTGRES_DATABASE}"
       SPRING_DATASOURCE_USERNAME: ${PLAYGROUND_SERVICE_POSTGRES_USER}
@@ -60,8 +57,7 @@ services:
     ports:
       - "15432:5432"
     networks:
-      - databases
-      - backdoor
+      - cep-platform-network
     environment:
       POSTGRES_USER: ${PLAYGROUND_SERVICE_POSTGRES_USER}
       POSTGRES_PASSWORD: ${PLAYGROUND_SERVICE_POSTGRES_PASSWORD}
@@ -80,8 +76,7 @@ services:
       - postgres-evaluations
       - kafka
     networks:
-      - services
-      - databases
+      - cep-platform-network
     environment:
       SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres-evaluations:5432/${EVALUATIONS_SERVICE_POSTGRES_DATABASE}"
       SPRING_DATASOURCE_USERNAME: ${EVALUATIONS_SERVICE_POSTGRES_USER}
@@ -99,8 +94,7 @@ services:
     ports:
       - "25432:5432"
     networks:
-      - databases
-      - backdoor
+      - cep-platform-network
     environment:
       POSTGRES_USER: ${EVALUATIONS_SERVICE_POSTGRES_USER}
       POSTGRES_PASSWORD: ${EVALUATIONS_SERVICE_POSTGRES_PASSWORD}
@@ -117,8 +111,7 @@ services:
       - service-registry
       - postgres-users
     networks:
-      - services
-      - databases
+      - cep-platform-network
     environment:
       SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres-users:5432/${USERS_SERVICE_POSTGRES_DATABASE}"
       SPRING_DATASOURCE_USERNAME: ${USERS_SERVICE_POSTGRES_USER}
@@ -139,8 +132,7 @@ services:
     ports:
       - "35432:5432"
     networks:
-      - databases
-      - backdoor
+      - cep-platform-network
     environment:
       POSTGRES_USER: ${USERS_SERVICE_POSTGRES_USER}
       POSTGRES_PASSWORD: ${USERS_SERVICE_POSTGRES_PASSWORD}
@@ -157,7 +149,7 @@ services:
     depends_on:
       - kafka
     networks:
-      - databases
+      - cep-platform-network
     environment:
       SPRING_KAFKA_BOOTSTRAPSERVERS: "kafka:9092"
       SPRING_ZIPKIN_BASEURL: http://zipkin:9411/
@@ -175,8 +167,7 @@ services:
       - service-registry
       - postgres-lti
     networks:
-      - services
-      - databases
+      - cep-platform-network
     environment:
       SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres-lti:5432/${LTI_SERVICE_POSTGRES_DATABASE}"
       SPRING_DATASOURCE_USERNAME: ${LTI_SERVICE_POSTGRES_USER}
@@ -194,8 +185,7 @@ services:
     ports:
       - "45432:5432"
     networks:
-      - databases
-      - backdoor
+      - cep-platform-network
     environment:
       POSTGRES_USER: ${LTI_SERVICE_POSTGRES_DATABASE}
       POSTGRES_PASSWORD: ${LTI_SERVICE_POSTGRES_USER}
@@ -210,10 +200,9 @@ services:
       - service-registry
       - lti-service
     networks:
-      - dmz
-      - services
+      - cep-platform-network
     environment:
-      LTIAPP_EXAMTAKINGURLTEMPLATE: "https://cep.bellotapps.com/take-exam?exam-id=$${exam-id}&access-token=$${access-token}&refresh-token=$${refresh-token}&token-id=$${token-id}"
+      LTIAPP_EXAMTAKINGURLTEMPLATE: "https://cep.bellotapps.com/student-login?exam-id=$${exam-id}&access-token=$${access-token}&refresh-token=$${refresh-token}&token-id=$${token-id}"
       eureka.client.serviceUrl.defaultZone: "http://service-registry:8761/eureka/"
       SPRING_ZIPKIN_BASEURL: http://zipkin:9411/
       SPRING_PROFILES_ACTIVE: "prod"
@@ -230,10 +219,7 @@ services:
     depends_on:
       - cassandra-zipkin
     networks:
-      - dmz
-      - services
-      - databases
-      - backdoor
+      - cep-platform-network
     environment:
       STORAGE_TYPE: cassandra
       CASSANDRA_CONTACT_POINTS: cassandra-zipkin
@@ -241,7 +227,7 @@ services:
   cassandra-zipkin:
     image: cassandra
     networks:
-      - databases
+      - cep-platform-network
 
   # ================================================================================
   # Service Registry
@@ -252,8 +238,7 @@ services:
     ports:
       - "8761:8761"
     networks:
-      - services
-      - backdoor
+      - cep-platform-network
     environment:
       SPRING_PROFILES_ACTIVE: "prod"
   
@@ -267,7 +252,7 @@ services:
     depends_on:
       - zookeeper
     networks:
-      - databases
+      - cep-platform-network
     environment:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
@@ -279,7 +264,7 @@ services:
   zookeeper:
     image: confluentinc/cp-zookeeper:5.1.3
     networks:
-      - databases
+      - cep-platform-network
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
 
@@ -289,22 +274,7 @@ services:
 # ================================================================================
 
 networks:
-  # Network that can be accessed from the outside
-  dmz:
-    name: dmz
-    driver: bridge
-  # Network where services are placed
-  services:
-    name: services
-    driver: bridge
-    internal: 'true'
-  # Network where databases are placed
-  databases:
-    name: databases
-    driver: bridge
-    internal: 'true'
-  # A network to be used for troubleshooting and debugging 
-  # DO NOT USE IN PRODUCTION!!!
-  backdoor:
-    name: backdoor
+
+  cep-platform-network:
+    name: cep-platform-network
     driver: bridge
