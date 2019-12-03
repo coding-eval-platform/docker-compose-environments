@@ -216,6 +216,8 @@ services:
     image: openzipkin/zipkin-slim:2.19.2
     ports:
       - 9411:9411
+    networks:
+      - cep-platform-network
 
   # ================================================================================
   # Service Registry
