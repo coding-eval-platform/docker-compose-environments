@@ -26,31 +26,28 @@ Those without a default value must be set using the ```export``` command.
 
 | Variable                              | Description                                       | Default value         |
 |:--------------------------------------|:--------------------------------------------------|:---------------------:|
-| API_GATEWAY_VERSION                   | The API Gateway Docker image tag                  | -                     |
-| USERS_SERVICE_VERSION                 | The Users Service Docker image tag                | -                     |
+| API_GATEWAY_VERSION                   | The API Gateway Docker image tag                  | 1.0.0-RELEASE         |
+| USERS_SERVICE_VERSION                 | The Users Service Docker image tag                | 1.0.0-RELEASE         |
 | USERS_SERVICE_POSTGRES_USER           | The Users Service database username               | users-service         |
 | USERS_SERVICE_POSTGRES_PASSWORD       | The Users Service database user's password        | users-service         |
 | USERS_SERVICE_POSTGRES_DATABASE       | The Users Service database name                   | users-service         |
 | USERS_SERVICE_FIRST_USER_USERNAME     | The username of the first admin user              | administrator         |
 | USERS_SERVICE_FIRST_USER_PASSWORD     | The password of the first admin user              | Cep1234!              |
-| LTI_SERVICE_VERSION                   | The LTI Service Docker image tag                  | -                     |
+| LTI_SERVICE_VERSION                   | The LTI Service Docker image tag                  | 1.0.0-RELEASE         |
 | LTI_SERVICE_POSTGRES_USER             | The LTI Service database username                 | lti-service           |
 | LTI_SERVICE_POSTGRES_PASSWORD         | The LTI Service database user's password          | lti-service           |
 | LTI_SERVICE_POSTGRES_DATABASE         | The LTI Service database name                     | lti-service           |
-| LTI_APP_VERSION                       | The LTI App Docker image tag                      | -                     |
-| EVALUATIONS_SERVICE_VERSION           | The Evaluations Service Docker image tag          | -                     |
+| LTI_APP_VERSION                       | The LTI App Docker image tag                      | 1.0.1-RELEASE         |
+| EVALUATIONS_SERVICE_VERSION           | The Evaluations Service Docker image tag          | 1.0.0-RELEASE         |
 | EVALUATIONS_SERVICE_POSTGRES_USER     | The Evaluations Service database username         | evaluations-service   |
 | EVALUATIONS_SERVICE_POSTGRES_PASSWORD | The Evaluations Service database user's password  | evaluations-service   |
 | EVALUATIONS_SERVICE_POSTGRES_DATABASE | The Evaluations Service database name             | evaluations-service   |
-| PLAYGROUND_SERVICE_VERSION            | The Playground Service Docker image tag           | -                     |
+| PLAYGROUND_SERVICE_VERSION            | The Playground Service Docker image tag           | 1.0.0-RELEASE         |
 | PLAYGROUND_SERVICE_POSTGRES_USER      | The Playground Service database username          | playground-service    |
 | PLAYGROUND_SERVICE_POSTGRES_PASSWORD  | The Playground Service database user's password   | playground-service    |
 | PLAYGROUND_SERVICE_POSTGRES_DATABASE  | The Playground Service database name              | playground-service    |
-| EXECUTOR_SERVICE_VERSION              | The Executor Service Docker image tag             | -                     |
-| SERVICE_REGISTRY_VERSION              | The Service Registry Docker image tag             | -                     |
-
-
-**Note:** In fact, there are default values for all the Docker images, but they are snapshot builds.
+| EXECUTOR_SERVICE_VERSION              | The Executor Service Docker image tag             | 1.0.0-RELEASE         |
+| SERVICE_REGISTRY_VERSION              | The Service Registry Docker image tag             | 1.0.0-RELEASE         |
 
 
 ## Example
@@ -58,7 +55,6 @@ Those without a default value must be set using the ```export``` command.
 The following is a full example that indicates how to run the stack.
 
 ```
-$ export API_GATEWAY_VERSION=...
 $ docker-compose up
 ```
 

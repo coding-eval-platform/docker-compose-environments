@@ -32,21 +32,13 @@ services:
 
 
   # ================================================================================
-  # Logging and Tracing
+  # Tracing
   # ================================================================================
 
   zipkin:
-    image: openzipkin/zipkin
+    image: openzipkin/zipkin-slim:2.19.2
     ports:
       - 9411:9411
-    depends_on:
-      - cassandra-zipkin
-    environment:
-      STORAGE_TYPE: cassandra
-      CASSANDRA_CONTACT_POINTS: cassandra-zipkin
-
-  cassandra-zipkin:
-    image: cassandra
 
 
   # ================================================================================
